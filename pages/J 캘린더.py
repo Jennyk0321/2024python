@@ -61,4 +61,52 @@ if selected_date:
                     "event": schedule,
                     "details": details
                 })
-                st.
+                st.success(f"{date_key} 일정이 추가되었습니다: {schedule}")
+            else:
+                st.warning("일정을 입력해 주세요!")
+
+# 달력 표시 및 일정 출력
+for date in dates:
+    month = date.month
+    year = date.year
+
+    st.subheader(f"{year}년 {month}월")
+
+    # 해당 월의 달력 생성
+    cal = calendar.monthcalendar(year, month)
+    columns = st.columns(7)
+
+    # 요일 헤더
+    for i, day in enumerate(['월', '화', '수', '목', '금', '토', '일']):
+        columns[i].write(f"**{day}**")
+
+    # 주별 날짜 표시
+    for week in cal:
+        week_columns = st.columns(7)
+        for i, day in enumerate(week):
+            if day == 0:
+                week_columns[i].write(" ")
+            else:
+                day_date = datetime(year, month, day)
+                day_str = day_date.strftime("%Y-%m-%d")
+
+                # 공휴일 또는 주말 표시
+                day_text = f"**{day}**"
+                if day_str in holidays:
+                    # 공휴일 빨간색 표시
+                    week_columns[i].markdown(f"<span style='color: red;'>{day_text} {holidays[day_str]}</span>", unsafe_allow_html=True)
+                elif i == 5:  # 토요일
+                    week_columns[i].markdown(f"<span style='color: red;'>{day_text}</span>", unsafe_allow_html=True)
+                elif i == 6:  # 일요일
+                    week_columns[i].markdown(f"<span style='color: red;'>{day_text}</span>", unsafe_allow_html=True)
+                else:
+                    week_columns[i].write(day_text)
+
+                # 일정 표시
+                if day_str in st.session_state["schedule_data"]:
+                    for event in st.session_state["schedule_data"][day_str]:
+                        week_columns[i].write(f"🕒 {event['time']} - {event['event']}")
+
+                # 오늘 날짜에 커서 표시
+                if day_date.date() == today.date():
+                    week_columns[i].markdown(f"<div style='background-color: #FFDDC1; padding: 5px; border-radius: 5px;'>📍 오늘</div>", unsafe_allow_html=True)
